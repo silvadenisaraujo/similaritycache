@@ -1,5 +1,5 @@
 [project]
-name = "simcache"
+name = "similaritycache"
 version = "0.1.0"
 description = "In-memory similarity cache"
 readme = "README.md"
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-simcache = "simcache:main"
+similaritycache = "simcache:main"
 
 [build-system]
 requires = ["uv_build>=0.8.17,<0.9.0"]

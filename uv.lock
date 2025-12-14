@@ -757,7 +757,7 @@ wheels = [
 ]
 
 [[package]]
-name = "simcache"
+name = "similaritycache"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

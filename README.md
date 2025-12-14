@@ -13,13 +13,13 @@ A powerful in-memory similarity cache with LRU eviction and TTL expiration, desi
 ## Installation
 
 ```bash
-pip install simcache
+pip install similaritycache
 ```
 
 Or using `uv`:
 
 ```bash
-uv add simcache
+uv add similaritycache
 ```
 
 ## Requirements

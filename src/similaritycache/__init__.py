@@ -4,4 +4,4 @@ __all__ = ["SimilarityCache"]
 
 
 def main() -> None:
-    print("Hello from simcache!")
+    print("Hello from similaritycache!")
