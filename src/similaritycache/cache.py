@@ -4,7 +4,7 @@ import numpy as np
 
 from typing import Any, Optional
 from sentence_transformers import SentenceTransformer
-from simcache.node import Node
+from similaritycache.node import Node
 
 class SimilarityCache:
     """Configurable in-memory cache with LRU eviction and TTL expiration."""
