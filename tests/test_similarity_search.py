@@ -56,7 +56,7 @@ class TestSimilaritySearch:
     async def test_threshold_affects_matching(self):
         """Test that different thresholds affect matching behavior."""
         # Low threshold - more permissive
-        cache_low = SimilarityCache(threshold=0.5)
+        cache_low = SimilarityCache(threshold=0.1)
         await cache_low.set("What is machine learning?", "ML is a subset of AI")
         await self._wait_for_embeddings(cache_low, ["What is machine learning?"])
         
@@ -68,9 +68,8 @@ class TestSimilaritySearch:
         # Same query might match with low threshold but not high
         result_low = cache_low.get("Tell me about ML")
         result_high = cache_high.get("Tell me about ML")
-        
-        # At least one should behave differently based on threshold
-        # (exact behavior depends on model, but we test the mechanism)
+        assert result_low is not None
+        assert result_high is None
 
     @pytest.mark.asyncio
     async def test_exact_match_preferred_over_similarity(self):
@@ -126,15 +125,18 @@ class TestSimilaritySearch:
     @pytest.mark.asyncio
     async def test_similarity_search_without_embeddings(self):
         """Test that similarity search works even if some entries don't have embeddings yet."""
-        cache = SimilarityCache(threshold=0.7)
+        cache = SimilarityCache(threshold=0.3)
         
         # Set entry but don't wait for embedding
-        await cache.set("What is machine learning?", "ML is a subset of AI")
+        key = "What is machine learning?"
+        await cache.set(key, "ML is a subset of AI")
         
         # Try to get similar - should not match if embedding not ready
         result = cache.get("What is ML?")
-        # Result depends on timing, but should handle gracefully
-        # If embedding is ready, it matches; if not, returns None
+        if (cache._cache[key].embedding is None):
+            assert result is None
+        else:
+            assert result == "ML is a subset of AI"
 
     @pytest.mark.asyncio
     async def test_multiple_similar_queries(self):
@@ -176,10 +178,13 @@ class TestSimilaritySearch:
         await cache.set("What is machine learning?", "ML is a subset of AI")
         await self._wait_for_embeddings(cache, ["What is machine learning?"])
         
-        # Query that might be just at threshold
+        # Query that is below threshold
         result = cache.get("What is ML?")
-        # Should either match (if >= 0.8) or not (if < 0.8)
-        # Exact behavior depends on model
+        assert result is None
+
+        # Query that is at threshold
+        result = cache.get("What's machine learning")
+        assert result == "ML is a subset of AI"
 
     @pytest.mark.asyncio
     async def test_similarity_search_updates_lru(self):
@@ -235,12 +240,12 @@ class TestSimilaritySearch:
         
         # Slightly different might not match
         result2 = cache.get("What is ML?")
-        # Might or might not match depending on model
+        assert result2 is None
 
     @pytest.mark.asyncio
     async def test_similarity_with_very_low_threshold(self):
         """Test similarity search with very low threshold (near 0.0)."""
-        cache = SimilarityCache(threshold=0.1)  # Very low threshold
+        cache = SimilarityCache(threshold=0.01)  # Very low threshold
         
         await cache.set("What is machine learning?", "ML is a subset of AI")
         await cache.set("What is the weather?", "Weather is atmospheric conditions")
@@ -252,7 +257,7 @@ class TestSimilaritySearch:
         
         # Many queries might match with low threshold
         result = cache.get("Tell me about anything")
-        # Should match something (exact behavior depends on model)
+        assert result is not None
 
     @pytest.mark.asyncio
     async def test_similarity_search_handles_missing_embeddings(self):
@@ -268,4 +273,5 @@ class TestSimilaritySearch:
         
         # Similarity search should skip nodes without embeddings
         result = cache.get("What is machine learning?")
-        # Should not crash, might return None if no valid embeddings
+        # Should not crash, return None if no valid embeddings
+        assert result is None
